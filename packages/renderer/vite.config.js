@@ -24,7 +24,7 @@ export default defineConfig({
   root: PACKAGE_ROOT,
   resolve: {
     alias: {
-      '/@/': join(PACKAGE_ROOT, 'src') + '/',
+      '@/': join(PACKAGE_ROOT, 'src') + '/',
     },
   },
   plugins: [vue()],

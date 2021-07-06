@@ -1,7 +1,7 @@
-import {app, BrowserWindow} from 'electron';
+import {app, BrowserWindow, ipcMain, Tray, Menu} from 'electron';
 import {join} from 'path';
 import {URL} from 'url';
-
+import notification from "./modules/notification"
 
 const isSingleInstance = app.requestSingleInstanceLock();
 
@@ -32,7 +32,6 @@ if (env.MODE === 'development') {
 }
 
 let mainWindow: BrowserWindow | null = null;
-
 const createWindow = async () => {
   mainWindow = new BrowserWindow({
     show: false, // Use 'ready-to-show' event to show window
@@ -70,6 +69,18 @@ const createWindow = async () => {
   await mainWindow.loadURL(pageUrl);
 };
 
+let tray = null;
+const setTrayMenu = () => {
+  tray = new Tray(join(__dirname, '../static/image/icon.png'))
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Item1', type: 'radio' },
+    { label: 'Item2', type: 'radio' },
+    { label: 'Item3', type: 'radio', checked: true },
+    { label: 'Item4', type: 'radio' }
+  ])
+  tray.setToolTip('This is my application.')
+  //tray.setContextMenu(contextMenu)
+}
 
 app.on('second-instance', () => {
   // Someone tried to run a second instance, we should focus our window.
@@ -91,6 +102,9 @@ app.whenReady()
   .then(createWindow)
   .catch((e) => console.error('Failed create window:', e));
 
+app.whenReady()
+  .then(setTrayMenu)
+  .catch((e) => console.error('Failed set tray-menu:', e));
 
 // Auto-updates
 if (env.PROD) {
@@ -99,4 +113,17 @@ if (env.PROD) {
     .then(({autoUpdater}) => autoUpdater.checkForUpdatesAndNotify())
     .catch((e) => console.error('Failed check updates:', e));
 }
+
+ipcMain.on("notify",(event, params = {}) => {
+  
+  const { body = '', title = ''} = params
+  notification.show({
+    title,
+    body
+  })
+
+  mainWindow!.webContents.send("response", {
+    success: true
+  });
+})
 

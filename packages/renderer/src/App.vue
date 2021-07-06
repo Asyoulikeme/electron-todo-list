@@ -1,16 +1,11 @@
 <template>
-  <img
-    alt="Vue logo"
-    src="../assets/logo.svg"
-    width="300"
-  >
   <app-navigation />
   <router-view />
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import AppNavigation from '/@/components/AppNavigation.vue';
+import AppNavigation from '@/components/AppNavigation.vue';
 export default defineComponent({
   name: 'App',
   components: {
@@ -20,6 +15,11 @@ export default defineComponent({
 </script>
 
 <style>
+*{
+  padding:0;
+  margin:0;
+  box-sizing: border-box;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

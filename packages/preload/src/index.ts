@@ -1,14 +1,19 @@
-import {contextBridge} from 'electron';
+import { contextBridge, ipcRenderer } from "electron";
 
-const apiKey = 'electron';
+const apiKey = "electron";
 /**
  * @see https://github.com/electron/electron/issues/21437#issuecomment-573522360
  */
 const api: ElectronApi = {
   versions: process.versions,
+  request: (type: EventType, params) => {
+    ipcRenderer.send(type , params)
+  },
+  onResponse: (fn) => {
+    ipcRenderer.on('response', (event, ...args) => fn(...args));
+  }
 };
-
-if (import.meta.env.MODE !== 'test') {
+if (import.meta.env.MODE !== "test") {
   /**
    * The "Main World" is the JavaScript context that your main renderer code runs in.
    * By default, the page you load in your renderer executes code in this world.
@@ -17,17 +22,20 @@ if (import.meta.env.MODE !== 'test') {
    */
   contextBridge.exposeInMainWorld(apiKey, api);
 } else {
-
   /**
    * Recursively Object.freeze() on objects and functions
    * @see https://github.com/substack/deep-freeze
    * @param obj Object on which to lock the attributes
    */
-  const deepFreeze = (obj: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (typeof obj === 'object' && obj !== null) {
-      Object.keys(obj).forEach((prop) => {
+  const deepFreeze = (obj: any) => {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    if (typeof obj === "object" && obj !== null) {
+      Object.keys(obj).forEach(prop => {
         const val = obj[prop];
-        if ((typeof val === 'object' || typeof val === 'function') && !Object.isFrozen(val)) {
+        if (
+          (typeof val === "object" || typeof val === "function") &&
+          !Object.isFrozen(val)
+        ) {
           deepFreeze(val);
         }
       });
@@ -39,7 +47,6 @@ if (import.meta.env.MODE !== 'test') {
   deepFreeze(api);
 
   window[apiKey] = api;
-
   // Need for Spectron tests
   window.electronRequire = require;
 }
